@@ -1,7 +1,11 @@
-"type": "module",
-"dependencies": {
-  "express": "^5.1.0",
-  "firebase-admin": "^13.6.0",
-  "serverless-http": "^3.2.0",
-  "dotenv": "^16.4.5"
+{
+  "name": "backend-fishapp",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "firebase-admin": "^13.6.0",
+    "serverless-http": "^3.2.0"
+  }
 }
