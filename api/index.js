@@ -132,4 +132,5 @@ app.get("/", (req, res) => {
 });
 
 // === INI PALING PENTING ===
-export const handler = serverless(app);
+export default serverless(app);
+
