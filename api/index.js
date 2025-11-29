@@ -1,6 +1,9 @@
 import express from "express";
 import admin from "firebase-admin";
 import serverless from "serverless-http";
+import dotenv from "dotenv";
+
+dotenv.config(); // WAJIB
 
 const app = express();
 app.use(express.json());
@@ -11,7 +14,7 @@ if (!admin.apps.length) {
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
     }),
   });
 }
@@ -131,6 +134,5 @@ app.get("/", (req, res) => {
   res.send("Backend Notifikasi Firebase berjalan di Vercel ✔");
 });
 
-// === INI PALING PENTING ===
+// === EXPORT DEFAULT (WAJIB) ===
 export default serverless(app);
-
