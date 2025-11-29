@@ -1,5 +1,6 @@
 import express from "express";
 import admin from "firebase-admin";
+import serverless from "serverless-http";
 
 const app = express();
 app.use(express.json());
@@ -10,7 +11,7 @@ if (!admin.apps.length) {
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
     }),
   });
 }
@@ -32,7 +33,6 @@ app.post("/notify-warning-temp", async (req, res) => {
 
     const id = await admin.messaging().send(message);
     res.json({ success: true, id });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -55,7 +55,6 @@ app.post("/notify-warning-do", async (req, res) => {
 
     const id = await admin.messaging().send(message);
     res.json({ success: true, id });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -78,7 +77,6 @@ app.post("/notify-feeding-success", async (req, res) => {
 
     const id = await admin.messaging().send(message);
     res.json({ success: true, id });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -95,13 +93,12 @@ app.post("/notify-feeding-fail", async (req, res) => {
       token,
       notification: {
         title: "Pemberian Pakan Gagal",
-        body: `Gagal memberikan pakan: Pakan Habis`,
+        body: "Gagal memberikan pakan: Pakan Habis",
       },
     };
 
     const id = await admin.messaging().send(message);
     res.json({ success: true, id });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -124,18 +121,15 @@ app.post("/notify-feed-empty", async (req, res) => {
 
     const id = await admin.messaging().send(message);
     res.json({ success: true, id });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ===================================================
 // ROOT
-// ===================================================
 app.get("/", (req, res) => {
   res.send("Backend Notifikasi Firebase berjalan di Vercel ✔");
 });
 
-// Export handler untuk Vercel
-export default app;
+// === INI PALING PENTING ===
+export const handler = serverless(app);
