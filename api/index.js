@@ -1,138 +1,123 @@
-import express from "express";
 import admin from "firebase-admin";
-import serverless from "serverless-http";
-import dotenv from "dotenv";
 
-dotenv.config(); // WAJIB
-
-const app = express();
-app.use(express.json());
-
-// --- Firebase Admin init ---
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      privateKey: process.env.FIREBASE_PRIVATE_KEY,
     }),
   });
 }
 
-// ===================================================
-// 1. NOTIF WARNING SUHU
-// ===================================================
-app.post("/notify-warning-temp", async (req, res) => {
-  const { token, tempValue, doValue, freq } = req.body;
+export default async function handler(req, res) {
+  const { method, url, body } = req;
 
-  try {
-    const message = {
-      token,
-      notification: {
-        title: `Peringatan Suhu Air !`,
-        body: `Suhu air : ${tempValue}°C\nKadar DO : ${doValue} mg/l\nFrekuensi Aerator : ${freq} HZ\nMohon segera cek kondisi kolam.`,
-      },
-    };
-
-    const id = await admin.messaging().send(message);
-    res.json({ success: true, id });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  // === ROOT ===
+  if (url === "/" && method === "GET") {
+    return res.status(200).send("Backend Notifikasi Firebase berjalan di Vercel ✔");
   }
-});
 
-// ===================================================
-// 2. NOTIF WARNING DO
-// ===================================================
-app.post("/notify-warning-do", async (req, res) => {
-  const { token, tempValue, doValue, freq } = req.body;
+  // === 1. WARNING TEMP ===
+  if (url === "/notify-warning-temp" && method === "POST") {
+    try {
+      const { token, tempValue, doValue, freq } = body;
 
-  try {
-    const message = {
-      token,
-      notification: {
-        title: `Peringatan Kadar Dissolved Oxygen !`,
-        body: `Kadar DO : ${doValue} mg/l\nSuhu air : ${tempValue}°C\nFrekuensi Aerator : ${freq} HZ\nMohon segera cek kondisi kolam.`,
-      },
-    };
+      const message = {
+        token,
+        notification: {
+          title: `Peringatan Suhu Air !`,
+          body: `Suhu air : ${tempValue}°C\nKadar DO : ${doValue} mg/l\nFrekuensi Aerator : ${freq} HZ\nMohon segera cek kondisi kolam.`,
+        },
+      };
 
-    const id = await admin.messaging().send(message);
-    res.json({ success: true, id });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+      const id = await admin.messaging().send(message);
+      return res.status(200).json({ success: true, id });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
   }
-});
 
-// ===================================================
-// 3. FEEDING BERHASIL
-// ===================================================
-app.post("/notify-feeding-success", async (req, res) => {
-  const { token, berat } = req.body;
+  // === 2. WARNING DO ===
+  if (url === "/notify-warning-do" && method === "POST") {
+    try {
+      const { token, tempValue, doValue, freq } = body;
 
-  try {
-    const message = {
-      token,
-      notification: {
-        title: "Pemberian Pakan Berhasil",
-        body: `Pakan berhasil diberikan sebanyak ${berat} gram.`,
-      },
-    };
+      const message = {
+        token,
+        notification: {
+          title: `Peringatan Kadar Dissolved Oxygen !`,
+          body: `Kadar DO : ${doValue} mg/l\nSuhu air : ${tempValue}°C\nFrekuensi Aerator : ${freq} HZ\nMohon segera cek kondisi kolam.`,
+        },
+      };
 
-    const id = await admin.messaging().send(message);
-    res.json({ success: true, id });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+      const id = await admin.messaging().send(message);
+      return res.status(200).json({ success: true, id });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
   }
-});
 
-// ===================================================
-// 4. FEEDING GAGAL
-// ===================================================
-app.post("/notify-feeding-fail", async (req, res) => {
-  const { token } = req.body;
+  // === 3. FEEDING SUCCESS ===
+  if (url === "/notify-feeding-success" && method === "POST") {
+    try {
+      const { token, berat } = body;
 
-  try {
-    const message = {
-      token,
-      notification: {
-        title: "Pemberian Pakan Gagal",
-        body: "Gagal memberikan pakan: Pakan Habis",
-      },
-    };
+      const message = {
+        token,
+        notification: {
+          title: "Pemberian Pakan Berhasil",
+          body: `Pakan berhasil diberikan sebanyak ${berat} gram.`,
+        },
+      };
 
-    const id = await admin.messaging().send(message);
-    res.json({ success: true, id });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+      const id = await admin.messaging().send(message);
+      return res.status(200).json({ success: true, id });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
   }
-});
 
-// ===================================================
-// 5. PAKAN HABIS
-// ===================================================
-app.post("/notify-feed-empty", async (req, res) => {
-  const { token } = req.body;
+  // === 4. FEEDING FAIL ===
+  if (url === "/notify-feeding-fail" && method === "POST") {
+    try {
+      const { token } = body;
 
-  try {
-    const message = {
-      token,
-      notification: {
-        title: "Pakan Hampir Habis!",
-        body: "Level pakan sangat rendah. Harap isi ulang wadah pakan.",
-      },
-    };
+      const message = {
+        token,
+        notification: {
+          title: "Pemberian Pakan Gagal",
+          body: "Gagal memberikan pakan: Pakan Habis",
+        },
+      };
 
-    const id = await admin.messaging().send(message);
-    res.json({ success: true, id });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+      const id = await admin.messaging().send(message);
+      return res.status(200).json({ success: true, id });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
   }
-});
 
-// ROOT
-app.get("/", (req, res) => {
-  res.send("Backend Notifikasi Firebase berjalan di Vercel ✔");
-});
+  // === 5. FEED EMPTY ===
+  if (url === "/notify-feed-empty" && method === "POST") {
+    try {
+      const { token } = body;
 
-// === EXPORT DEFAULT (WAJIB) ===
-export default serverless(app);
+      const message = {
+        token,
+        notification: {
+          title: "Pakan Hampir Habis!",
+          body: "Level pakan sangat rendah. Harap isi ulang wadah pakan.",
+        },
+      };
+
+      const id = await admin.messaging().send(message);
+      return res.status(200).json({ success: true, id });
+    } catch (e) {
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  // === Not Found ===
+  res.status(404).json({ error: "Endpoint not found" });
+}
