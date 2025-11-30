@@ -1,5 +1,5 @@
 {
-  "name": "firebase-notification-backend",
+  "name": "backend-notif",
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
