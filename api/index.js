@@ -8,15 +8,15 @@ if (!admin.apps.length) {
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"), // penting untuk Vercel
     }),
   });
 }
 
 // --------------------------
-// EXPORT FUNCTION (COMMONJS) — WAJIB UNTUK VERCEL
+// Default Export — Vercel API Handler
 // --------------------------
-module.exports = async (req, res) => {
+module.exports = async function handler(req, res) {
   const { method, url, body } = req;
 
   // Root route
@@ -24,7 +24,9 @@ module.exports = async (req, res) => {
     return res.status(200).send("Backend Notifikasi Firebase berjalan di Vercel ✔");
   }
 
-  // WARNING TEMP
+  // --------------------------
+  //  NOTIFY WARNING TEMP
+  // --------------------------
   if (url === "/notify-warning-temp" && method === "POST") {
     const { token, tempValue, doValue, freq } = body;
 
@@ -33,16 +35,19 @@ module.exports = async (req, res) => {
         token,
         notification: {
           title: "Peringatan Suhu Air!",
-          body: `Suhu air: ${tempValue}°C\nDO: ${doValue} mg/l\nFrekuensi: ${freq} Hz`
+          body: `Suhu: ${tempValue}°C\nDO: ${doValue} mg/l\nFrekuensi: ${freq} Hz`
         }
       });
+
       return res.status(200).json({ success: true, id });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }
   }
 
-  // WARNING DO
+  // --------------------------
+  //  NOTIFY WARNING DO         
+  // --------------------------
   if (url === "/notify-warning-do" && method === "POST") {
     const { token, tempValue, doValue, freq } = body;
 
@@ -54,13 +59,16 @@ module.exports = async (req, res) => {
           body: `DO: ${doValue} mg/l\nSuhu: ${tempValue}°C\nFrekuensi: ${freq} Hz`
         }
       });
+
       return res.status(200).json({ success: true, id });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }
   }
 
+  // --------------------------
   // FEEDING SUCCESS
+  // --------------------------
   if (url === "/notify-feeding-success" && method === "POST") {
     const { token, berat } = body;
 
@@ -72,13 +80,16 @@ module.exports = async (req, res) => {
           body: `Pakan diberikan ${berat} gram`
         }
       });
+
       return res.status(200).json({ success: true, id });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }
   }
 
+  // --------------------------
   // FEEDING FAIL
+  // --------------------------
   if (url === "/notify-feeding-fail" && method === "POST") {
     const { token } = body;
 
@@ -90,13 +101,16 @@ module.exports = async (req, res) => {
           body: "Pakan habis!"
         }
       });
+
       return res.status(200).json({ success: true, id });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }
   }
 
+  // --------------------------
   // FEED EMPTY
+  // --------------------------
   if (url === "/notify-feed-empty" && method === "POST") {
     const { token } = body;
 
@@ -108,11 +122,15 @@ module.exports = async (req, res) => {
           body: "Harap isi ulang pakan segera"
         }
       });
+
       return res.status(200).json({ success: true, id });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }
   }
 
+  // --------------------------
+  // 404
+  // --------------------------
   return res.status(404).json({ error: "Not Found" });
 };
