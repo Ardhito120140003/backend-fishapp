@@ -1,5 +1,8 @@
-import admin from "firebase-admin";
+const admin = require("firebase-admin");
 
+// --------------------------
+// Firebase Admin Initialization
+// --------------------------
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -10,14 +13,24 @@ if (!admin.apps.length) {
   });
 }
 
-export default async function handler(req, res) {
+// --------------------------
+// Vercel API Handler
+// --------------------------
+module.exports = async function handler(req, res) {
   const { method, url, body } = req;
 
-  if (method === "GET") {
+  // Normalisasi URL (hapus query string)
+  const cleanUrl = url.split("?")[0];
+
+  // Root test
+  if (cleanUrl === "/api/notify" && method === "GET") {
     return res.status(200).send("Backend Notifikasi Firebase berjalan di Vercel ✔");
   }
 
-  if (req.url === "/api/notify-warning-temp" && method === "POST") {
+  // ===========================
+  // WARNING TEMP
+  // ===========================
+  if (cleanUrl === "/api/notify-warning-temp" && method === "POST") {
     const { token, tempValue, doValue, freq } = body;
 
     try {
@@ -28,12 +41,92 @@ export default async function handler(req, res) {
           body: `Suhu: ${tempValue}°C\nDO: ${doValue} mg/l\nFrekuensi: ${freq} Hz`
         }
       });
-
       return res.status(200).json({ success: true, id });
-    } catch (e) {
-      return res.status(500).json({ error: e.message });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
     }
   }
 
+  // ===========================
+  // WARNING DO
+  // ===========================
+  if (cleanUrl === "/api/notify-warning-do" && method === "POST") {
+    const { token, tempValue, doValue, freq } = body;
+
+    try {
+      const id = await admin.messaging().send({
+        token,
+        notification: {
+          title: "Peringatan DO Rendah!",
+          body: `DO: ${doValue} mg/l\nSuhu: ${tempValue}°C\nFrekuensi: ${freq} Hz`
+        }
+      });
+      return res.status(200).json({ success: true, id });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // ===========================
+  // FEEDING SUCCESS
+  // ===========================
+  if (cleanUrl === "/api/notify-feeding-success" && method === "POST") {
+    const { token, berat } = body;
+
+    try {
+      const id = await admin.messaging().send({
+        token,
+        notification: {
+          title: "Pemberian Pakan Berhasil",
+          body: `Pakan diberikan ${berat} gram`
+        }
+      });
+      return res.status(200).json({ success: true, id });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // ===========================
+  // FEEDING FAIL
+  // ===========================
+  if (cleanUrl === "/api/notify-feeding-fail" && method === "POST") {
+    const { token } = body;
+
+    try {
+      const id = await admin.messaging().send({
+        token,
+        notification: {
+          title: "Pemberian Pakan Gagal",
+          body: "Pakan habis!"
+        }
+      });
+      return res.status(200).json({ success: true, id });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // ===========================
+  // FEED EMPTY
+  // ===========================
+  if (cleanUrl === "/api/notify-feed-empty" && method === "POST") {
+    const { token } = body;
+
+    try {
+      const id = await admin.messaging().send({
+        token,
+        notification: {
+          title: "Pakan Hampir Habis!",
+          body: "Harap isi ulang pakan segera"
+        }
+      });
+      return res.status(200).json({ success: true, id });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  }
+
+  // 404 fallback
   return res.status(404).json({ error: "Not Found" });
-}
+};
