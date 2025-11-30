@@ -1,4 +1,4 @@
-import admin from "firebase-admin";
+const admin = require("firebase-admin");
 
 // --------------------------
 // Firebase Admin Initialization
@@ -14,16 +14,12 @@ if (!admin.apps.length) {
 }
 
 // --------------------------
-// Vercel API FUNCTION (NO EXPORT DEFAULT)
+// EXPORT FUNCTION (COMMONJS) — WAJIB UNTUK VERCEL
 // --------------------------
-export const config = {
-  runtime: "nodejs18.x"
-};
-
-export default async (req, res) => {
+module.exports = async (req, res) => {
   const { method, url, body } = req;
 
-  // ROOT
+  // Root route
   if (url === "/" && method === "GET") {
     return res.status(200).send("Backend Notifikasi Firebase berjalan di Vercel ✔");
   }
