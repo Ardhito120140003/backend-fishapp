@@ -5,7 +5,7 @@ if (!admin.apps.length) {
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
     }),
   });
 }
@@ -13,12 +13,10 @@ if (!admin.apps.length) {
 export default async function handler(req, res) {
   const { method, url, body } = req;
 
-  // --- ROOT ---
   if (url === "/" && method === "GET") {
     return res.status(200).send("Backend Notifikasi Firebase berjalan di Vercel ✔");
   }
 
-  // ============ WARNING SUHU ============
   if (url === "/notify-warning-temp" && method === "POST") {
     const { token, tempValue, doValue, freq } = body;
 
@@ -36,7 +34,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // ============ WARNING DO ============
   if (url === "/notify-warning-do" && method === "POST") {
     const { token, tempValue, doValue, freq } = body;
 
@@ -54,7 +51,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // ============ FEEDING SUCCESS ============
   if (url === "/notify-feeding-success" && method === "POST") {
     const { token, berat } = body;
 
@@ -72,7 +68,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // ============ FEEDING FAIL ============
   if (url === "/notify-feeding-fail" && method === "POST") {
     const { token } = body;
 
@@ -90,7 +85,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // ============ FEED EMPTY ============
   if (url === "/notify-feed-empty" && method === "POST") {
     const { token } = body;
 
@@ -108,6 +102,5 @@ export default async function handler(req, res) {
     }
   }
 
-  // Tidak ditemukan
   return res.status(404).json({ error: "Not Found" });
 }
