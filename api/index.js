@@ -13,111 +13,101 @@ if (!admin.apps.length) {
 export default async function handler(req, res) {
   const { method, url, body } = req;
 
-  // === ROOT ===
+  // --- ROOT ---
   if (url === "/" && method === "GET") {
     return res.status(200).send("Backend Notifikasi Firebase berjalan di Vercel ✔");
   }
 
-  // === 1. WARNING TEMP ===
+  // ============ WARNING SUHU ============
   if (url === "/notify-warning-temp" && method === "POST") {
-    try {
-      const { token, tempValue, doValue, freq } = body;
+    const { token, tempValue, doValue, freq } = body;
 
-      const message = {
+    try {
+      const id = await admin.messaging().send({
         token,
         notification: {
-          title: `Peringatan Suhu Air !`,
-          body: `Suhu air : ${tempValue}°C\nKadar DO : ${doValue} mg/l\nFrekuensi Aerator : ${freq} HZ\nMohon segera cek kondisi kolam.`,
-        },
-      };
-
-      const id = await admin.messaging().send(message);
+          title: "Peringatan Suhu Air!",
+          body: `Suhu air: ${tempValue}°C\nDO: ${doValue} mg/l\nFrekuensi: ${freq} Hz`
+        }
+      });
       return res.status(200).json({ success: true, id });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }
   }
 
-  // === 2. WARNING DO ===
+  // ============ WARNING DO ============
   if (url === "/notify-warning-do" && method === "POST") {
-    try {
-      const { token, tempValue, doValue, freq } = body;
+    const { token, tempValue, doValue, freq } = body;
 
-      const message = {
+    try {
+      const id = await admin.messaging().send({
         token,
         notification: {
-          title: `Peringatan Kadar Dissolved Oxygen !`,
-          body: `Kadar DO : ${doValue} mg/l\nSuhu air : ${tempValue}°C\nFrekuensi Aerator : ${freq} HZ\nMohon segera cek kondisi kolam.`,
-        },
-      };
-
-      const id = await admin.messaging().send(message);
+          title: "Peringatan DO Rendah!",
+          body: `DO: ${doValue} mg/l\nSuhu: ${tempValue}°C\nFrekuensi: ${freq} Hz`
+        }
+      });
       return res.status(200).json({ success: true, id });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }
   }
 
-  // === 3. FEEDING SUCCESS ===
+  // ============ FEEDING SUCCESS ============
   if (url === "/notify-feeding-success" && method === "POST") {
-    try {
-      const { token, berat } = body;
+    const { token, berat } = body;
 
-      const message = {
+    try {
+      const id = await admin.messaging().send({
         token,
         notification: {
           title: "Pemberian Pakan Berhasil",
-          body: `Pakan berhasil diberikan sebanyak ${berat} gram.`,
-        },
-      };
-
-      const id = await admin.messaging().send(message);
+          body: `Pakan diberikan ${berat} gram`
+        }
+      });
       return res.status(200).json({ success: true, id });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }
   }
 
-  // === 4. FEEDING FAIL ===
+  // ============ FEEDING FAIL ============
   if (url === "/notify-feeding-fail" && method === "POST") {
-    try {
-      const { token } = body;
+    const { token } = body;
 
-      const message = {
+    try {
+      const id = await admin.messaging().send({
         token,
         notification: {
           title: "Pemberian Pakan Gagal",
-          body: "Gagal memberikan pakan: Pakan Habis",
-        },
-      };
-
-      const id = await admin.messaging().send(message);
+          body: "Pakan habis!"
+        }
+      });
       return res.status(200).json({ success: true, id });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }
   }
 
-  // === 5. FEED EMPTY ===
+  // ============ FEED EMPTY ============
   if (url === "/notify-feed-empty" && method === "POST") {
-    try {
-      const { token } = body;
+    const { token } = body;
 
-      const message = {
+    try {
+      const id = await admin.messaging().send({
         token,
         notification: {
           title: "Pakan Hampir Habis!",
-          body: "Level pakan sangat rendah. Harap isi ulang wadah pakan.",
-        },
-      };
-
-      const id = await admin.messaging().send(message);
+          body: "Harap isi ulang pakan segera"
+        }
+      });
       return res.status(200).json({ success: true, id });
     } catch (e) {
       return res.status(500).json({ error: e.message });
     }
   }
 
-  // === Not Found ===
-  res.status(404).json({ error: "Endpoint not found" });
+  // Tidak ditemukan
+  return res.status(404).json({ error: "Not Found" });
 }
