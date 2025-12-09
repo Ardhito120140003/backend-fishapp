@@ -21,7 +21,7 @@ module.exports = async (req, res) => {
     const id = await admin.messaging().send({
       token,
       notification: {
-        title: "Peringatan DO Rendah!",
+        title: "Peringatan Kadar Oksigen!",
         body: `DO: ${doValue} mg/l\nSuhu: ${tempValue}°C\nFrekuensi: ${freq} Hz`
       }
     });
